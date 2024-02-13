@@ -27,7 +27,7 @@ async def search_company(company_name: str):
     try:
         driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
-        time.sleep(3) 
+        time.sleep(5) 
         page_source = driver.page_source
         driver.quit()
     except Exception as e:
@@ -61,7 +61,7 @@ async def get_debarred_firms():
     try:
         driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
-        time.sleep(3)
+        time.sleep(5)
         page_source = driver.page_source
         driver.quit()
 
