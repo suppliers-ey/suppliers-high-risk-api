@@ -1,31 +1,33 @@
 from fastapi import FastAPI, HTTPException
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
 
 app = FastAPI()
 
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # To run Chrome in headless mode
+#chrome_options.add_argument("--headless")
 
-# Path to your Chrome WebDriver executable
-chrome_path = "path/to/chromedriver.exe"
 
-@app.get("/search")
+@app.get("/worldbank/{company_name}")
+async def search_company(company_name: str):
+    debarrd_firms = await get_debarred_firms()
+    results = []
+    for firm in debarrd_firms["results"]:
+        if company_name.lower() in firm["firm_name"].lower():
+            results.append(firm)
+    return {"results": results}
+
+
+@app.get("/offshore-leaks/{company_name}")
 async def search_company(company_name: str):
     url = f"https://offshoreleaks.icij.org/search?q={company_name}"
 
     try:
-        # Use Selenium to load JavaScript content
-        service = Service(chrome_path)
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
-        time.sleep(2)  # Adjust the delay time as necessary to ensure the page is fully loaded
+        time.sleep(3) 
         page_source = driver.page_source
         driver.quit()
     except Exception as e:
@@ -57,11 +59,9 @@ async def search_company(company_name: str):
 async def get_debarred_firms():
     url = "https://projects.worldbank.org/en/projects-operations/procurement/debarred-firms"
     try:
-        # Use Selenium to load JavaScript content
-        service = Service(chrome_path)
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=chrome_options)
         driver.get(url)
-        time.sleep(3)  # Adjust the delay time as necessary to ensure the page is fully loaded
+        time.sleep(3)
         page_source = driver.page_source
         driver.quit()
 
@@ -78,10 +78,10 @@ async def get_debarred_firms():
     if table:
         print("Table found")
         rows = table.find_all('tr')
-        for row in rows[1:]:  # Skip header row
+        for row in rows[1:]:
             columns = row.find_all('td')
             print(columns)
-            if len(columns) > 0:  # Ensure all columns are present
+            if len(columns) > 0: 
                 firm_name = columns[0].text.strip()
                 address = columns[1].text.strip()
                 country = columns[3].text.strip()
