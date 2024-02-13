@@ -4,11 +4,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import time
+from functools import wraps
+from datetime import datetime, timedelta
 
 app = FastAPI()
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
+
+# Define el número máximo de llamadas por minuto permitidas
+MAX_CALLS_PER_MINUTE = 1
+CALL_INTERVAL = timedelta(seconds=20 / MAX_CALLS_PER_MINUTE)
+call_history = {}
+
 
 # Allow requests from the frontend
 app.add_middleware(
@@ -19,7 +27,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def rate_limit_calls(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        now = datetime.now()
+        last_call = call_history.get(func.__name__)
+        if last_call and now - last_call < CALL_INTERVAL:
+            time_to_wait = CALL_INTERVAL - (now - last_call)
+            raise HTTPException(status_code=429, detail=f"Too many requests. Please wait {time_to_wait.total_seconds()} seconds before trying again.")
+        call_history[func.__name__] = now
+        return await func(*args, **kwargs)
+    return wrapper
+
 @app.get("/worldbank/{company_name}")
+@rate_limit_calls
 async def search_company(company_name: str):
     debarrd_firms = await get_debarred_firms()
     results = []
@@ -30,6 +51,7 @@ async def search_company(company_name: str):
 
 
 @app.get("/offshore-leaks/{company_name}")
+@rate_limit_calls
 async def search_company(company_name: str):
     url = f"https://offshoreleaks.icij.org/search?q={company_name}"
 
@@ -65,6 +87,7 @@ async def search_company(company_name: str):
     return {"results": results}
 
 @app.get("/debarred-firms")
+@rate_limit_calls
 async def get_debarred_firms():
     url = "https://projects.worldbank.org/en/projects-operations/procurement/debarred-firms"
     try:
