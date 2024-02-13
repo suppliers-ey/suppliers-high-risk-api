@@ -3,6 +3,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
 
@@ -59,7 +61,7 @@ async def get_debarred_firms():
         service = Service(chrome_path)
         driver = webdriver.Chrome()
         driver.get(url)
-        time.sleep(2)  # Adjust the delay time as necessary to ensure the page is fully loaded
+        time.sleep(3)  # Adjust the delay time as necessary to ensure the page is fully loaded
         page_source = driver.page_source
         driver.quit()
 
@@ -70,6 +72,8 @@ async def get_debarred_firms():
     results = []
 
     div = soup.find('div', class_='k-grid-content k-auto-scrollable')
+    if not div:
+        raise HTTPException(status_code=404, detail="No results found")
     table = div.find('table')
     if table:
         print("Table found")
@@ -80,19 +84,19 @@ async def get_debarred_firms():
             if len(columns) > 0:  # Ensure all columns are present
                 firm_name = columns[0].text.strip()
                 address = columns[1].text.strip()
-                #country = columns[3].text.strip()
-                #ineligibility_from = columns[4].text.strip()
-                #ineligibility_to = columns[5].text.strip()
-                #grounds = columns[6].text.strip()
+                country = columns[3].text.strip()
+                ineligibility_from = columns[4].text.strip()
+                ineligibility_to = columns[5].text.strip()
+                grounds = columns[6].text.strip()
                 results.append({
                     "firm_name": firm_name,
                     "address": address,
-                 #   "country": country,
-                  #  "ineligibility_period": {
-                   #     "from_date": ineligibility_from,
-                    #    "to_date": ineligibility_to
-                    #},
-                    #"grounds": grounds
+                    "country": country,
+                    "ineligibility_period": {
+                        "from_date": ineligibility_from,
+                        "to_date": ineligibility_to
+                    },
+                    "grounds": grounds
                 })
 
     return {"results": results}
