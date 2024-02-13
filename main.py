@@ -12,13 +12,11 @@ app = FastAPI()
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
-# Define el número máximo de llamadas por minuto permitidas
-MAX_CALLS_PER_MINUTE = 1
-CALL_INTERVAL = timedelta(seconds=20 / MAX_CALLS_PER_MINUTE)
+MAX_CALLS_PER_MINUTE = 20
+CALL_INTERVAL = timedelta(seconds=60 / MAX_CALLS_PER_MINUTE)
 call_history = {}
 
 
-# Allow requests from the frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://191.233.26.17:3000", "http://191.233.26.17"],
