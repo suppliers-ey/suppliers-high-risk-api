@@ -2,7 +2,7 @@
 
 This project is an automated tool designed for financial institutions that need to conduct online searches to identify entities in high-risk lists, such as international sanctions, watchlists, and other relevant databases. The tool utilizes web scraping techniques to extract the necessary information from online sources and presents it in a readable format for review.
 
-## Fuentes
+## Sources
 - Offshore Leaks Database: `https://offshoreleaks.icij.org` 
     Attributes: Entity, Jurisdiction, Linked To, Data From
 - The World Bank: `https://projects.worldbank.org/en/projectsoperations/procurement/debarred-firms`
@@ -16,6 +16,8 @@ Before running this project, ensure you have the following installed:
 
 - Python 3.7+
 - pip (Python package manager)
+- Google Chrome browser
+- ChromeDriver
 
 ## Getting Started
 
@@ -56,5 +58,3 @@ Before running this project, ensure you have the following installed:
 
 - Once the server is running, you can access the API endpoints using tools like cURL, Postman, or any web browser.
 - Refer to the API documentation (`http://localhost:8000/docs`) for detailed information about available endpoints and how to use them.
-
-
